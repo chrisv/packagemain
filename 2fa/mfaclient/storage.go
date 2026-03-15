@@ -17,6 +17,21 @@ type Storage struct {
 	Filepath string
 }
 
+func generateID() string {
+	bytes := make([]byte, 8)
+	rand.Read(bytes)
+	return hex.EncodeToString(bytes)
+}
+
+func (s *Storage) save(accounts []Account) error {
+	data, err := json.Marshal(accounts)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(s.Filepath, data, 0o600)
+}
+
 func (s *Storage) LoadAccounts() ([]Account, error) {
 	data, err := os.ReadFile(s.Filepath)
 	if err != nil {
@@ -30,12 +45,6 @@ func (s *Storage) LoadAccounts() ([]Account, error) {
 	var accounts []Account
 	json.Unmarshal(data, &accounts)
 	return accounts, nil
-}
-
-func generateID() string {
-	bytes := make([]byte, 8)
-	rand.Read(bytes)
-	return hex.EncodeToString(bytes)
 }
 
 func (s *Storage) AddAccount(a Account) error {
@@ -63,13 +72,4 @@ func (s *Storage) DeleteAccount(id string) error {
 	}
 
 	return s.save(filtered)
-}
-
-func (s *Storage) save(accounts []Account) error {
-	data, err := json.Marshal(accounts)
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(s.Filepath, data, 0o600)
 }

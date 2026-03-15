@@ -10,6 +10,23 @@ import (
 	"time"
 )
 
+func GenerateTotp(secret string) (string, int, error) {
+	now := time.Now()
+
+	counter := getCounter(now)
+
+	hash, err := calculateHash(secret, counter)
+	if err != nil {
+		return "", 0, err
+	}
+
+	code := truncate(hash)
+
+	remaining := 30 - (int(now.Unix()) % 30)
+
+	return fmt.Sprintf("%d", code), remaining, nil
+}
+
 func getCounter(t time.Time) uint64 {
 	return uint64(t.Unix()) / 30
 }
@@ -42,21 +59,4 @@ func truncate(hash []byte) int {
 		int(hash[offset+3])
 
 	return code % 1000000
-}
-
-func GenerateTotp(secret string) (string, int, error) {
-	now := time.Now()
-
-	counter := getCounter(now)
-
-	hash, err := calculateHash(secret, counter)
-	if err != nil {
-		return "", 0, err
-	}
-
-	code := truncate(hash)
-
-	remaining := 30 - (int(now.Unix()) % 30)
-
-	return fmt.Sprintf("%d", code), remaining, nil
 }
